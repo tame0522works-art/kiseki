@@ -1,11 +1,16 @@
 name: Deploy to GitHub Pages
 
-# main への push で確かめて公開する。Pull Request（Dependabot の更新など）では確かめるだけで公開しない
+# main への push と毎日の定時に、CelesTrak から軌道要素を取り直し、確かめて公開する。
+# Pull Request（Dependabot の更新など）では確かめるだけで公開しない
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  # 毎日 06:00 UTC（日本時間 15:00）。その日の夕方と翌朝の通過を、半日以内の軌道要素で出すため。
+  # GitHub は 60 日間 push の無いリポジトリの定時実行を止めるので、止まったら Actions の画面から有効に戻す
+  schedule:
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -28,8 +33,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # SGP4 の検証用データ（Vallado の付録 zip）は変わらないので、取り直さずに使い回す
+      - uses: actions/cache@v6
+        with:
+          path: raw/vallado.zip
+          key: vallado-aiaa-2006-6753
+      - run: npm run fetch
+      - run: npm run convert
       - run: npm run check
-      # 公開と同じ設定でビルドしたものを、ヘッドレスの Chrome で書いて確かめる
+      # 公開と同じ設定でビルドしたものを、ヘッドレスの Chrome で操作して確かめる
       - run: npm run e2e
       - if: failure()
         uses: actions/upload-artifact@v7

@@ -19,5 +19,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "tools", "src/sat"]
+  "include": ["vite.config.ts", "tools", "src/sat", "src/ui/stars.json"]
 }

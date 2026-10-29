@@ -12,4 +12,9 @@ export const GP_GROUPS = ['visual', 'stations'] as const
 export const gpUrl = (group: string) => `https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=json`
 export const gpRaw = (group: string) => `raw/gp-${group}.json`
 
-export const ATTRIBUTION = '軌道要素: CelesTrak（https://celestrak.org/）'
+/**
+ * イェール輝星星表 第5版（Hoffleit & Warren 1991）。配布元の SAO Telescope Data Center から取る。
+ * このサーバーの HTTPS は証明書のホスト名が合わないので HTTP で取る。取った後、tools/stars.ts で Bayer 名と照らして確かめる。
+ */
+export const BSC5_URL = 'http://tdc-www.harvard.edu/catalogs/bsc5.dat.gz'
+export const BSC5_GZ = 'raw/bsc5.dat.gz'

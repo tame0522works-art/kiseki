@@ -6,15 +6,22 @@ import { type Catalog, readCatalog } from './sat/catalog.ts'
 import { observerEcef } from './sat/frames.ts'
 import { type Pass, MIN_ELEVATION, sampleAt, visible } from './sat/passes.ts'
 import { sgp4init } from './sat/sgp4.ts'
+import { type Star, equatorialToLook, precess } from './sat/stars.ts'
 import { sunPosition } from './sat/sun.ts'
 import type { SearchRequest, SearchResponse } from './search.worker.ts'
 import Dome from './ui/Dome.tsx'
-import type { Dot, Scene, TrackPoint } from './ui/sky.ts'
+import type { Dot, Scene, StarDot, TrackPoint } from './ui/sky.ts'
+import starsJson from './ui/stars.json'
 
 const CATALOG = catalogJson as Catalog
 const SATELLITES = readCatalog(CATALOG)
 const RECS = SATELLITES.map((sat) => ({ sat, rec: sgp4init(sat) }))
 const BY_SATNUM = new Map(SATELLITES.map((s) => [s.satnum, s]))
+// 歳差は1日で 0.004° ほどなので、開いた時点の座標に直しておけば足りる
+const STARS = (starsJson as Star[]).map((s) => {
+  const [ra, dec] = precess(s.ra, s.dec, Date.now() / 86400000 + 2440587.5)
+  return { ...s, ra, dec }
+})
 
 /** これから何時間先までの通過を探すか */
 const WINDOW_MS = 24 * 3600e3
@@ -128,7 +135,12 @@ export default function App() {
       if (selected?.satnum === sat.satnum) marker = { ...dot, sunlit: s.sunlit }
       else if (s.sunlit) dots.push(dot)
     }
-    return { sunAltitude: sunPosition(time, place.lat, place.lon, false).altitude, dots, track, marker }
+    const stars: StarDot[] = []
+    for (const s of STARS) {
+      const look = equatorialToLook(s.ra, s.dec, place, time)
+      if (look.elevation >= 0) stars.push({ look, mag: s.mag, name: s.name })
+    }
+    return { sunAltitude: sunPosition(time, place.lat, place.lon, false).altitude, stars, dots, track, marker }
   }, [place, site, time, selected, track])
 
   const choosePlace = (p: Place) => {
@@ -328,7 +340,8 @@ export default function App() {
         </p>
         <p>現在地は、この端末の中で約1kmに丸めて使い、どこにも送りません。</p>
         <p>
-          軌道要素: <a href="https://celestrak.org/">CelesTrak</a>（{stamp(fetchedAt)} 取得）
+          軌道要素: <a href="https://celestrak.org/">CelesTrak</a>（{stamp(fetchedAt)} 取得）。恒星: Hoffleit &amp; Warren{' '}
+          <a href="http://tdc-www.harvard.edu/catalogs/bsc5.html">The Bright Star Catalogue, 5th Revised Ed.</a>（3.5 等より明るい星）
         </p>
       </footer>
     </div>

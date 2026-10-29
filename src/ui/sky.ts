@@ -4,10 +4,13 @@ import type { Look } from '../sat/frames.ts'
 
 export type Dot = { look: Look; label: string; station: boolean }
 export type TrackPoint = { look: Look; visible: boolean }
+export type StarDot = { look: Look; mag: number; name?: string }
 
 export type Scene = {
   /** 観測地の太陽高度（度）。空の色を決める */
   sunAltitude: number
+  /** 地平線より上の恒星（方角の目印） */
+  stars: StarDot[]
   /** 日が当たっていて、地平線より上にある衛星 */
   dots: Dot[]
   /** 選んだ通過の軌跡（地平線より上の部分） */
@@ -87,6 +90,8 @@ export function drawSky(ctx: CanvasRenderingContext2D, size: number, scene: Scen
     ctx.fillText(name, x, y)
   }
 
+  drawStars(ctx, scene, at, size)
+
   // 衛星（日が当たっているもの）。空が明るいうちは肉眼では見えないので薄く
   ctx.globalAlpha = dark ? 1 : 0.35
   ctx.fillStyle = color('--sat')
@@ -110,6 +115,36 @@ export function drawSky(ctx: CanvasRenderingContext2D, size: number, scene: Scen
     ctx.fill()
     ctx.stroke()
   }
+}
+
+/**
+ * 恒星。等級が小さい（明るい）ほど大きな点にする。夜はすべて、薄明のうちは 1 等より明るい星だけを薄く描き、昼は描かない。
+ * 名前は空が暗いときだけ、明るい星に添える（衛星の点と見分けがつくよう、星は少し黄みのある色にする）。
+ */
+function drawStars(ctx: CanvasRenderingContext2D, scene: Scene, at: (l: Look) => [number, number], size: number) {
+  if (scene.sunAltitude > 0) return
+  const dark = scene.sunAltitude <= -6
+  const shown = dark ? scene.stars : scene.stars.filter((s) => s.mag < 1)
+  ctx.globalAlpha = dark ? 1 : 0.5
+  ctx.fillStyle = color('--star')
+  for (const s of shown) {
+    const [x, y] = at(s.look)
+    ctx.beginPath()
+    ctx.arc(x, y, Math.max(0.7, 2.4 - 0.5 * s.mag), 0, 2 * Math.PI)
+    ctx.fill()
+  }
+  if (dark) {
+    ctx.fillStyle = color('--star-label')
+    ctx.font = `${Math.round(size / 42)}px system-ui, sans-serif`
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    for (const s of shown) {
+      if (!s.name || s.look.elevation < 5) continue
+      const [x, y] = at(s.look)
+      ctx.fillText(s.name, x + 5, y)
+    }
+  }
+  ctx.globalAlpha = 1
 }
 
 /** 軌跡。見える区間は太い実線、影の中や低い区間は細い破線。最後に進む向きの矢印を付ける */

@@ -11,10 +11,14 @@
     "preview": "vite preview",
     "fetch": "tsx tools/fetch.ts",
     "convert": "tsx tools/convert.ts",
-    "check": "npm run check:sgp4 && npm run check:sun && npm run check:jaxa",
+    "stars": "tsx tools/stars.ts",
+    "check": "npm run check:sgp4 && npm run check:sun && npm run check:stars && npm run check:jaxa",
     "check:sgp4": "tsx tools/check-sgp4.ts",
     "check:sun": "tsx tools/check-sun.ts",
-    "check:jaxa": "tsx tools/check-jaxa.ts"
+    "check:stars": "tsx tools/check-stars.ts",
+    "check:jaxa": "tsx tools/check-jaxa.ts",
+    "e2e": "vite build --outDir dist-e2e --emptyOutDir && tsx tools/e2e.ts",
+    "screenshots": "tsx tools/screenshots.ts"
   },
   "dependencies": {
     "react": "^19.3.0",
