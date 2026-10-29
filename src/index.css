@@ -1,0 +1,319 @@
+:root {
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --fg: #1c2230;
+  --muted: #586174;
+  --line: #d2d6df;
+  --accent: #2b4aa0;
+  --warn: #9a5b00;
+  /* 全天図は昼の画面でも夜空として描く。空の色は太陽の高度で3段階 */
+  --sky-night: #0f1730;
+  --sky-twilight: #2a3a6b;
+  --sky-day: #6f8fc4;
+  --sky-line: rgb(255 255 255 / 0.14);
+  --sky-edge: rgb(255 255 255 / 0.45);
+  --sat: #dfe6f5;
+  --track: #ffd166;
+  --track-dim: rgb(255 209 102 / 0.55);
+  --marker: #ffd166;
+  color-scheme: light dark;
+  font-family: system-ui, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11141b;
+    --surface: #191d26;
+    --fg: #e6e8ee;
+    --muted: #a1a8b6;
+    --line: #353b48;
+    --accent: #9fb4ff;
+    --warn: #f0b44c;
+    --sky-night: #070b18;
+    --sky-twilight: #1d2a52;
+    --sky-day: #4f6b9c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+a {
+  color: var(--accent);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.bar h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.sky {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.place label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+select {
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.dome {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.legend {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-height: 2.6em;
+}
+
+.now .time {
+  font-size: 1.4rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.detail {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.detail dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.detail dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail small {
+  display: block;
+  color: var(--muted);
+}
+
+.passes h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.passes .count {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+.day h3 {
+  margin: 14px 0 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.passes ol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.passes li button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  width: 100%;
+  text-align: left;
+}
+
+.passes .t {
+  grid-row: span 2;
+  align-self: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.passes .path {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* 宇宙ステーションはいちばん明るいので、左に太い線を付けて目立たせる（色だけに頼らない） */
+.passes button.station {
+  border-left: 5px solid var(--accent);
+}
+
+.passes button.station .name {
+  font-weight: 600;
+}
+
+.passes button[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.note {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+.note.warn {
+  color: var(--warn);
+}
+
+button {
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button.primary {
+  color: var(--surface);
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.foot {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 8px 16px 24px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.foot p {
+  margin: 0 0 4px;
+}
+
+@media (max-width: 760px) {
+  .main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  /* 狭い画面では、時刻のつまみを1行ぶん使えるよう、ボタンより上に出す */
+  .player {
+    flex-wrap: wrap;
+  }
+
+  .player input[type='range'] {
+    order: -1;
+    flex-basis: 100%;
+    margin: 6px 0;
+  }
+}

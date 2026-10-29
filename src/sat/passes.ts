@@ -26,10 +26,10 @@ export type Pass = {
 
 export type Reason = 'low' | 'shadow' | 'twilight' | 'window'
 
-type Sample = { time: Date; look: Look; sunlit: boolean; dark: boolean }
+export type Sample = { time: Date; look: Look; sunlit: boolean; dark: boolean }
 
-/** 1つの衛星を、ある時刻に観測地から見た様子。軌道の計算が破綻したら（落下など）null */
-function sampleAt(rec: Satrec, o: Observer, site: ReturnType<typeof observerEcef>, time: Date): Sample | null {
+/** 1つの衛星を、ある時刻に観測地から見た様子（全天図でも使う）。軌道の計算が破綻したら（落下など）null */
+export function sampleAt(rec: Satrec, o: Observer, site: ReturnType<typeof observerEcef>, time: Date): Sample | null {
   let r
   try {
     r = sgp4(rec, (time.getTime() / 86400000 + 2440587.5 - rec.epochJd) * 1440).r
@@ -45,7 +45,7 @@ function sampleAt(rec: Satrec, o: Observer, site: ReturnType<typeof observerEcef
   }
 }
 
-const visible = (s: Sample) => s.dark && s.sunlit && s.look.elevation >= MIN_ELEVATION
+export const visible = (s: Sample) => s.dark && s.sunlit && s.look.elevation >= MIN_ELEVATION
 
 /** a は見えない・b は見える（またはその逆）とき、変わり目を1秒まで詰めて、見える側の標本を返す */
 function refine(at: (t: Date) => Sample | null, a: Sample, b: Sample): Sample {

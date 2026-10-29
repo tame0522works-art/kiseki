@@ -9,3 +9,5 @@ dist
 raw
 dist-e2e
 e2e-failures
+# 軌道要素から作る（毎日変わるのでコミットしない）。npm run fetch && npm run convert で作り直せる
+src/data

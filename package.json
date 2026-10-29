@@ -10,6 +10,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "fetch": "tsx tools/fetch.ts",
+    "convert": "tsx tools/convert.ts",
     "check": "npm run check:sgp4 && npm run check:sun && npm run check:jaxa",
     "check:sgp4": "tsx tools/check-sgp4.ts",
     "check:sun": "tsx tools/check-sun.ts",
