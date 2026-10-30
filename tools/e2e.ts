@@ -157,20 +157,25 @@ const scenarios: Scenario[] = [
     },
   },
   {
-    name: '初めは最大仰角 30° 未満の通過を隠し（宇宙ステーションは除く）、低い通過も出すと件数が増える',
+    name: '初めは最大仰角 30° 未満（宇宙ステーションは除く）と 60 秒未満の通過を隠し、切り替えると件数が増える',
     async run(ui) {
       await ui.open()
-      // 一覧の各行の最大仰角と、宇宙ステーションかどうか
+      // 一覧の各行の最大仰角・見えている秒数と、宇宙ステーションかどうか
       const rows = () =>
-        ui.page.run<{ max: number; station: boolean }[]>(`
-          return [...document.querySelectorAll('.passes li button')].map(b => ({ max: Number(b.querySelector('.path').textContent.match(/最大 (\\d+)°/)[1]), station: b.classList.contains('station') }))`)
+        ui.page.run<{ max: number; seconds: number; station: boolean }[]>(`
+          return [...document.querySelectorAll('.passes li button')].map(b => {
+            const path = b.querySelector('.path').textContent;
+            const [, min, sec] = path.match(/・(?:(\\d+)分)?(?:(\\d+)秒)?$/);
+            return { max: Number(path.match(/最大 (\\d+)°/)[1]), seconds: Number(min ?? 0) * 60 + Number(sec ?? 0), station: b.classList.contains('station') };
+          })`)
+      const hiddenRow = (r: { max: number; seconds: number; station: boolean }) => r.seconds < 60 || (!r.station && r.max < 30)
       const before = await rows()
-      assert.deepEqual(before.filter((r) => !r.station && r.max < 30), [], '隠すはずの低い通過が出ている')
+      assert.deepEqual(before.filter(hiddenRow), [], '隠すはずの通過が出ている')
       const hidden = Number((await ui.text('.toggle')).match(/（(\d+)件）/)![1])
       await ui.click('.toggle input')
       const after = await rows()
-      assert.equal(after.length, before.length + hidden)
-      assert.equal(after.filter((r) => !r.station && r.max < 30).length, hidden)
+      assert.equal(after.length, before.length + hidden, `一覧 ${before.length} → ${after.length}、隠した数 ${hidden}`)
+      assert.equal(after.filter(hiddenRow).length, hidden, `出した後の隠す対象 ${JSON.stringify(after.filter(hiddenRow))}`)
       await ui.click('.toggle input')
       assert.equal(await ui.count(), before.length)
     },

@@ -27,6 +27,11 @@ const STARS = (starsJson as Star[]).map((s) => {
 const WINDOW_MS = 24 * 3600e3
 /** 最大仰角がこれより低い通過は、初めは一覧に出さない（建物や山に隠れやすく、暗い衛星は見つけにくい） */
 const LOW_MAX = 30
+/**
+ * 見えている時間がこれより短い通過も、初めは出さない（宇宙ステーションでも）。地平線近くをかすめるだけや、
+ * 出てすぐ影に入る通過で、外に出て探しても間に合わない。JAXA の予報も 80 秒未満の通過は載せていなかった
+ */
+const SHORT_MS = 60_000
 /** 再生の速さ。5 分ほどの通過が 30 秒で流れる */
 const SPEED = 10
 /** 選んだ通過の前後に、地平線の下から上がってくるところ・沈むところも少し見せる */
@@ -171,7 +176,10 @@ export default function App() {
     if (dome && dome.getBoundingClientRect().top < 0) dome.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const isLow = (p: Pass) => p.max.elevation < LOW_MAX && !BY_SATNUM.get(p.satnum)?.station
+  const isLow = (p: Pass) =>
+    // 一覧に出す値（秒・度に丸めた値）で比べる。29.6° が「最大 30°」と出ているのに隠れる、ということがないように
+    Math.round((p.end.time.getTime() - p.start.time.getTime()) / 1000) * 1000 < SHORT_MS ||
+    (Math.round(p.max.elevation) < LOW_MAX && !BY_SATNUM.get(p.satnum)?.station)
   const lowCount = passes?.filter(isLow).length ?? 0
   const shown = passes?.filter((p) => showLow || !isLow(p)) ?? []
   const days = new Map<string, Pass[]>()
@@ -327,7 +335,7 @@ export default function App() {
           {lowCount > 0 && (
             <label className="toggle">
               <input type="checkbox" checked={showLow} onChange={(e) => setShowLow(e.target.checked)} />
-              低い通過（最大仰角 {LOW_MAX}° 未満）も出す（{lowCount}件）
+              低い通過（最大仰角 {LOW_MAX}° 未満）・短い通過（{SHORT_MS / 1000}秒未満）も出す（{lowCount}件）
             </label>
           )}
         </section>
